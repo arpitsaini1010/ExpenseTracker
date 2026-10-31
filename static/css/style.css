@@ -1,0 +1,175 @@
+:root {
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+    --accent: #06b6d4;
+    --accent-hover: #0891b2;
+    --bg-light: #f8fafc;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-light);
+    color: #1e293b;
+    min-width: 360px;
+    overflow-x: hidden;
+}
+
+/* Gradients & Badges */
+.bg-primary-gradient {
+    background: var(--primary-gradient) !important;
+}
+
+.bg-gradient-welcome {
+    background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+}
+
+.text-accent {
+    color: #38bdf8 !important;
+}
+
+.btn-accent {
+    background-color: #06b6d4;
+    color: #ffffff;
+    border: none;
+}
+
+.btn-accent:hover {
+    background-color: #0891b2;
+    color: #ffffff;
+}
+
+.user-pill {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    padding: 0.35rem 0.85rem;
+    border-radius: 50rem;
+    font-size: 0.875rem;
+    backdrop-filter: blur(4px);
+}
+
+.brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+/* Cards & Metrics */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-hover-shadow) !important;
+}
+
+.metric-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    flex-shrink: 0;
+}
+
+.forecast-card {
+    border-left: 5px solid var(--primary) !important;
+}
+
+.forecast-badge-icon {
+    width: 64px;
+    height: 64px;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Category Badges */
+.bg-category-food {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.bg-category-travel {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+
+.bg-category-bills {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.bg-category-shopping {
+    background-color: #f3e8ff;
+    color: #6b21a8;
+    border: 1px solid #e9d5ff;
+}
+
+.bg-category-health {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.bg-category-entertainment {
+    background-color: #ffedd5;
+    color: #9a3412;
+    border: 1px solid #fed7aa;
+}
+
+.bg-category-other {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+/* Table Enhancements */
+.table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.025em;
+    color: #64748b;
+    background-color: #f8fafc;
+}
+
+.table td {
+    font-size: 0.925rem;
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+}
+
+/* Tracking & Typography */
+.tracking-wider {
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+}
+
+/* Flash alerts */
+.flash-container {
+    margin-bottom: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .navbar-brand span {
+        font-size: 1.1rem;
+    }
+    .metric-icon {
+        width: 44px;
+        height: 44px;
+    }
+    .table td, .table th {
+        font-size: 0.85rem;
+    }
+}

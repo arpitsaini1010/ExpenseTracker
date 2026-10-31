@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - SmartExpense{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
+        <!-- Auth Card -->
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden bg-white">
+            <!-- Brand Header -->
+            <div class="bg-primary-gradient text-white p-4 text-center">
+                <div class="brand-icon mx-auto mb-2 bg-white bg-opacity-25 rounded-3 d-inline-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                    <i class="bi bi-wallet2 fs-3 text-white"></i>
+                </div>
+                <h4 class="fw-bold mb-1">Smart<span class="text-accent">Expense</span></h4>
+                <p class="text-white-50 small mb-0">Smart Expense & Financial Insight System</p>
+            </div>
+
+            <!-- Tab Switcher (New vs Existing User) -->
+            <div class="d-flex border-bottom bg-light">
+                <a href="{{ url_for('login') }}" class="flex-fill text-center py-3 fw-semibold text-muted text-decoration-none">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+                </a>
+                <a href="{{ url_for('register') }}" class="flex-fill text-center py-3 fw-bold text-primary border-bottom border-primary border-3 text-decoration-none bg-white">
+                    <i class="bi bi-person-plus me-1"></i> New User? Register
+                </a>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <h5 class="fw-bold text-dark mb-1">Create a Free Account</h5>
+                    <p class="text-muted small">Sign up to start tracking your daily expenses and monthly budgets.</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('register') }}" novalidate>
+                    {{ form.csrf_token }}
+
+                    <!-- Full Name Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.name.id }}" class="form-label fw-semibold text-dark small">
+                            Full Name <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person"></i></span>
+                            {{ form.name(class="form-control border-start-0" + (" is-invalid" if form.name.errors else ""), placeholder="e.g. Muskan Rajpal", autocomplete="name") }}
+                        </div>
+                        {% for error in form.name.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Email Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.email.id }}" class="form-label fw-semibold text-dark small">
+                            Email Address <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-envelope"></i></span>
+                            {{ form.email(class="form-control border-start-0" + (" is-invalid" if form.email.errors else ""), placeholder="name@example.com", autocomplete="email") }}
+                        </div>
+                        {% for error in form.email.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.password.id }}" class="form-label fw-semibold text-dark small">
+                            Password <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-lock"></i></span>
+                            {{ form.password(class="form-control border-start-0" + (" is-invalid" if form.password.errors else ""), placeholder="Minimum 8 characters", autocomplete="new-password") }}
+                        </div>
+                        <div class="form-text small text-muted" style="font-size: 0.75rem;">Must be at least 8 characters.</div>
+                        {% for error in form.password.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Confirm Password Field -->
+                    <div class="mb-4">
+                        <label for="{{ form.confirm_password.id }}" class="form-label fw-semibold text-dark small">
+                            Confirm Password <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-shield-lock"></i></span>
+                            {{ form.confirm_password(class="form-control border-start-0" + (" is-invalid" if form.confirm_password.errors else ""), placeholder="Re-enter password", autocomplete="new-password") }}
+                        </div>
+                        {% for error in form.confirm_password.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-grid gap-2 mb-2">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-semibold shadow-sm">
+                            <i class="bi bi-person-check-fill me-1"></i> Register Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Existing User Sign In Callout Footer -->
+            <div class="card-footer bg-light p-3 text-center border-top">
+                <span class="text-muted small">Already registered?</span>
+                <a href="{{ url_for('login') }}" class="fw-bold text-primary text-decoration-none ms-1">
+                    Sign In Directly <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

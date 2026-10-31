@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - SmartExpense{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <!-- Header with Month Selector & Action Buttons -->
+    <div
+        class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                <span>Dashboard Overview</span>
+                <span class="badge bg-light text-primary border small fs-6 fw-semibold">
+                    {{ selected_month | month_display }}
+                </span>
+            </h2>
+            <p class="text-muted small mb-0">Track monthly spending, budget health, and financial forecasts.</p>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <!-- Month Selector Form (FR-DSH-02) -->
+            <form method="GET" action="{{ url_for('dashboard') }}" class="d-inline-flex align-items-center gap-2">
+                <label for="dashboardMonthSelect" class="visually-hidden">Select Month</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="bi bi-calendar3"></i></span>
+                    <select id="dashboardMonthSelect" name="month" class="form-select form-select-sm fw-semibold"
+                        onchange="this.form.submit()">
+                        {% for mk in sorted_months %}
+                        <option value="{{ mk }}" {% if mk==selected_month %}selected{% endif %}>
+                            {{ mk | month_display }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+
+            <a href="{{ url_for('add_expense') }}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
+                <i class="bi bi-plus-circle me-1"></i> Add Expense
+            </a>
+            <a href="{{ url_for('budget', month=selected_month) }}"
+                class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                <i class="bi bi-piggy-bank me-1"></i> Set Budget
+            </a>
+        </div>
+    </div>
+
+    <!-- First Time User Welcome State (FR-DSH-09) -->
+    {% if not has_any_expenses %}
+    <div class="card border-0 shadow-sm bg-gradient-welcome text-white rounded-4 mb-4 p-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="fw-bold mb-2">Welcome to SmartExpense! 👋</h3>
+                <p class="mb-3 text-white-50">
+                    You haven't recorded any expenses yet. Get started by setting your monthly budget and adding your
+                    first daily expense to see live tracking, insightful charts, and future forecasts.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ url_for('add_expense') }}"
+                        class="btn btn-light text-primary fw-semibold rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-plus-lg me-1"></i> Record First Expense
+                    </a>
+                    <a href="{{ url_for('budget', month=selected_month) }}"
+                        class="btn btn-outline-light rounded-pill px-4">
+                        <i class="bi bi-piggy-bank me-1"></i> Set {{ selected_month | month_display }} Budget
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4 text-center d-none d-md-block">
+                <i class="bi bi-wallet2 display-1 text-white-50"></i>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 4 Summary Cards (FR-DSH-03) -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Total Spent (All-Time) -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card metric-card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body p-3 p-xl-4 d-flex align-items-center gap-3">
+                    <div class="metric-icon bg-info-subtle text-info rounded-3">
+                        <i class="bi bi-cash-stack fs-3"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small fw-medium text-uppercase tracking-wider d-block">Total Spent
+                            (All-Time)</span>
+                        <h4 class="fw-bold mb-0 text-dark">{{ total_spent_all_time | inr }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Spent This Month -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card metric-card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body p-3 p-xl-4 d-flex align-items-center gap-3">
+                    <div class="metric-icon bg-primary-subtle text-primary rounded-3">
+                        <i class="bi bi-calendar-check fs-3"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small fw-medium text-uppercase tracking-wider d-block">Spent This
+                            Month</span>
+                        <h4 class="fw-bold mb-0 text-primary">{{ spent_this_month | inr }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Monthly Budget -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card metric-card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body p-3 p-xl-4 d-flex align-items-center gap-3">
+                    <div class="metric-icon bg-success-subtle text-success rounded-3">
+                        <i class="bi bi-pie-chart fs-3"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small fw-medium text-uppercase tracking-wider d-block">Monthly
+                            Budget</span>
+                        <h4 class="fw-bold mb-0 text-dark">
+                            {% if eff_budget is not none %}
+                            {{ eff_budget | inr }}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Remaining Budget -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card metric-card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body p-3 p-xl-4 d-flex align-items-center gap-3">
+                    <div class="metric-icon 
+                        {% if budget_status.status == 'Normal' %}bg-success-subtle text-success
+                        {% elif budget_status.status == 'Warning' %}bg-warning-subtle text-warning
+                        {% elif budget_status.status == 'Critical' %}bg-danger-subtle text-danger
+                        {% elif budget_status.status == 'Over Budget' %}bg-dark-subtle text-dark
+                        {% else %}bg-secondary-subtle text-secondary{% endif %} rounded-3">
+                        <i class="bi bi-shield-check fs-3"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small fw-medium text-uppercase tracking-wider d-block">Remaining
+                            Budget</span>
+                        <h4 class="fw-bold mb-0 
+                            {% if budget_status.status == 'Over Budget' or budget_status.status == 'Critical' %}text-danger
+                            {% elif budget_status.status == 'Warning' %}text-warning
+                            {% elif budget_status.status == 'Normal' %}text-success
+                            {% else %}text-muted{% endif %}">
+                            {{ budget_status.remaining_display }}
+                        </h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Status Progress Bar & Alerts (FR-ALR) -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body p-4">
+            {% if eff_budget is not none %}
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold text-dark">Budget Utilization:</span>
+                    <span class="badge 
+                            {% if budget_status.color == 'success' %}bg-success
+                            {% elif budget_status.color == 'warning' %}bg-warning text-dark
+                            {% elif budget_status.color == 'danger' %}bg-danger
+                            {% elif budget_status.color == 'dark' %}bg-dark
+                            {% else %}bg-secondary{% endif %} px-3 py-1 rounded-pill">
+                        {{ budget_status.status }}
+                    </span>
+                </div>
+                <span class="fw-bold text-dark fs-5">
+                    {{ budget_status.percentage }}%
+                </span>
+            </div>
+
+            <!-- Utilization Bar (Capped at 100% visual width per FR-ALR-04) -->
+            <div class="progress mb-3 rounded-pill" style="height: 14px;">
+                <div class="progress-bar bg-{{ budget_status.color }} progress-bar-striped progress-bar-animated"
+                    role="progressbar" style="width: {{ budget_status.bar_width }}%;"
+                    aria-valuenow="{{ budget_status.percentage }}" aria-valuemin="0" aria-valuemax="100">
+                </div>
+            </div>
+
+            <!-- Alert Banner (FR-ALR-05) -->
+            {% if budget_status.banner_message %}
+            <div class="alert alert-{{ budget_status.color if budget_status.color != 'dark' else 'danger' }} mb-0 d-flex align-items-center gap-2 py-2 px-3 rounded-3"
+                role="alert">
+                {% if budget_status.status == 'Normal' %}
+                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                {% elif budget_status.status == 'Warning' %}
+                <i class="bi bi-exclamation-circle-fill text-warning fs-5"></i>
+                {% elif budget_status.status == 'Critical' %}
+                <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+                {% else %}
+                <i class="bi bi-x-octagon-fill text-dark fs-5"></i>
+                {% endif %}
+                <span class="fw-medium">{{ budget_status.banner_message }}</span>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                <div class="d-flex align-items-center gap-2 text-muted">
+                    <i class="bi bi-info-circle fs-4 text-primary"></i>
+                    <span>No monthly budget is set for this period. Set a budget to enable automatic utilization
+                        alerts.</span>
+                </div>
+                <a href="{{ url_for('budget', month=selected_month) }}"
+                    class="btn btn-outline-primary btn-sm rounded-pill px-3 text-nowrap">
+                    <i class="bi bi-plus-lg me-1"></i> Set a Monthly Budget
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Forecast Card (FR-FOR) -->
+    <div class="card forecast-card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center gap-2 text-primary fw-semibold mb-1">
+                        <i class="bi bi-graph-up-arrow fs-5"></i>
+                        <span>Next Month Spending Forecast</span>
+                    </div>
+
+                    {% if forecast_data.has_data %}
+                    <div class="d-flex align-items-baseline gap-2 mb-2">
+                        <h3 class="fw-bold mb-0 text-dark">{{ forecast_data.amount_display }}</h3>
+                        <span class="badge bg-primary-subtle text-primary border rounded-pill">{{ forecast_data.message
+                            }}</span>
+                    </div>
+                    {% if forecast_data.budget_comparison %}
+                    <p
+                        class="small mb-1 fw-medium {% if 'exceeds' in forecast_data.budget_comparison %}text-danger{% else %}text-success{% endif %}">
+                        <i
+                            class="bi {% if 'exceeds' in forecast_data.budget_comparison %}bi-exclamation-circle{% else %}bi-check-circle{% endif %} me-1"></i>
+                        {{ forecast_data.budget_comparison }}
+                    </p>
+                    {% endif %}
+                    {% else %}
+                    <p class="text-muted mb-1">{{ forecast_data.message }}</p>
+                    {% endif %}
+                    <span class="text-muted font-monospace" style="font-size: 0.75rem;">
+                        * Calculated as the arithmetic average of past completed months. Excludes current month.
+                    </span>
+                </div>
+                <div class="col-md-4 text-md-end text-center mt-3 mt-md-0">
+                    <div class="forecast-badge-icon d-inline-flex p-3 rounded-circle bg-primary-subtle text-primary">
+                        <i class="bi bi-lightning-charge-fill fs-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Two Charts Side by Side (FR-CHT) -->
+    <div class="row g-4 mb-4">
+        <!-- 1. Category-Wise Breakdown -->
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-pie-chart-fill text-primary"></i> Category Breakdown
+                    </h5>
+                    <span class="text-muted small">{{ selected_month | month_display }}</span>
+                </div>
+                <div class="card-body p-4 d-flex flex-column justify-content-center">
+                    {% if has_month_expenses %}
+                    <div class="chart-container position-relative" style="min-height: 280px; max-height: 320px;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary-subtle"></i>
+                        <p class="fw-semibold mb-1">No expenses this month</p>
+                        <span class="small">Add an expense to see category insights.</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 6-Month Spending Trend -->
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-bar-chart-fill text-success"></i> 6-Month Spending Trend
+                    </h5>
+                    <span class="text-muted small">Past 6 Months</span>
+                </div>
+                <div class="card-body p-4 d-flex flex-column justify-content-center">
+                    <div class="chart-container position-relative" style="min-height: 280px; max-height: 320px;">
+                        <canvas id="monthTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full-Width Payment Mode Analysis (FR-PAY) -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                <i class="bi bi-credit-card-2-front-fill text-info"></i> Payment Mode Analysis
+            </h5>
+            <span class="text-muted small">{{ selected_month | month_display }}</span>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4 align-items-center">
+                <!-- Doughnut Chart for Payment Modes -->
+                <div class="col-12 col-md-5 col-lg-4 text-center">
+                    {% if has_month_expenses %}
+                    <div class="chart-container position-relative mx-auto"
+                        style="min-height: 240px; max-height: 260px;">
+                        <canvas id="paymentModeChart"></canvas>
+                    </div>
+                    {% else %}
+                    <div class="py-4 text-muted">
+                        <i class="bi bi-wallet2 fs-2 d-block mb-2 text-secondary-subtle"></i>
+                        <span class="small">No expenses this month</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- Payment Mode Table (FR-PAY-02, 04) -->
+                <div class="col-12 col-md-7 col-lg-8">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="border-0">Payment Mode</th>
+                                    <th scope="col" class="border-0 text-end">Amount (₹)</th>
+                                    <th scope="col" class="border-0 text-end">Share (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in payment_mode_data %}
+                                <tr>
+                                    <td class="fw-semibold">
+                                        {% if item.mode == 'Cash' %}
+                                        <i class="bi bi-cash me-2 text-success"></i>
+                                        {% elif item.mode == 'UPI' %}
+                                        <i class="bi bi-qr-code-scan me-2 text-primary"></i>
+                                        {% elif item.mode == 'Debit/Credit Card' %}
+                                        <i class="bi bi-credit-card me-2 text-info"></i>
+                                        {% else %}
+                                        <i class="bi bi-bank me-2 text-warning"></i>
+                                        {% endif %}
+                                        {{ item.mode }}
+                                    </td>
+                                    <td class="text-end fw-bold">{{ item.amount_display }}</td>
+                                    <td class="text-end">
+                                        <span class="badge bg-light text-dark border">{{ item.share }}%</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions Table (FR-DSH-07) -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                <i class="bi bi-clock-history text-secondary"></i> Recent Transactions
+            </h5>
+            <a href="{{ url_for('expenses', month=selected_month) }}"
+                class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                View All Expenses <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="card-body p-0">
+            {% if recent_transactions %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="px-4">Date</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Payment Mode</th>
+                            <th scope="col" class="text-end px-4">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for exp in recent_transactions %}
+                        <tr>
+                            <td class="px-4 text-nowrap text-muted">{{ exp.expense_date | date_fmt }}</td>
+                            <td>
+                                <span
+                                    class="badge bg-category-{{ exp.category | lower | replace(' ', '-') }} rounded-pill px-2 py-1">
+                                    {{ exp.category }}
+                                </span>
+                            </td>
+                            <td class="text-break">{{ exp.description or '-' }}</td>
+                            <td>
+                                <span class="badge bg-light text-secondary border rounded-pill">{{ exp.payment_mode
+                                    }}</span>
+                            </td>
+                            <td class="text-end px-4 fw-bold text-dark">{{ exp.amount | inr }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-muted">
+                <p class="mb-0">No transactions recorded yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Safe Chart Data JSON Injection (FR-CHT-04) -->
+<script id="chart-data" type="application/json">
+{
+    "hasMonthExpenses": {{ has_month_expenses | tojson }},
+    "catLabels": {{ cat_labels | tojson }},
+    "catValues": {{ cat_values | tojson }},
+    "monthChartLabels": {{ month_chart_labels | tojson }},
+    "monthChartValues": {{ month_chart_values | tojson }},
+    "payLabels": {{ pay_labels | tojson }},
+    "payValues": {{ pay_values | tojson }}
+}
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

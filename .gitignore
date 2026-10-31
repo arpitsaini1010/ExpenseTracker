@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Environment & local variables
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# Databases
+instance/*.db
+instance/*.db-journal
+*.db
+*.sqlite3
+
+# Packaging, duplicates & OS files
+*.zip
+smartexpense_app/
+scratch_srs.txt
+.DS_Store
+Thumbs.db

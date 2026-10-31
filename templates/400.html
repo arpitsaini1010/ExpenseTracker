@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Bad Request (400) - SmartExpense{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-12 col-md-8 col-lg-6 text-center">
+        <div class="p-5 bg-white rounded-4 shadow-sm border">
+            <div class="text-warning display-1 fw-bold mb-3"><i class="bi bi-shield-exclamation"></i></div>
+            <h3 class="fw-bold text-dark mb-2">Request or Security Token Invalid</h3>
+            <p class="text-muted mb-4">
+                {{ description or "Your session or security token may have expired. Please refresh the page and submit again." }}
+            </p>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm">
+                    <i class="bi bi-house-door-fill me-1"></i> Dashboard
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

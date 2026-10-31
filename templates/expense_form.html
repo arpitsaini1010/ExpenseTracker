@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - SmartExpense{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-3">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card shadow border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-primary-gradient text-white p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-bold mb-1">
+                            <i class="bi {% if is_edit %}bi-pencil-square{% else %}bi-plus-circle-fill{% endif %} me-2"></i>{{ title }}
+                        </h4>
+                        <p class="text-white-50 small mb-0">
+                            {% if is_edit %}Update the details of your recorded transaction{% else %}Record a new expenditure with category and payment mode{% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="POST" novalidate>
+                    {{ form.csrf_token }}
+
+                    <!-- Amount Field (FR-EXP-02) -->
+                    <div class="mb-3">
+                        <label for="{{ form.amount.id }}" class="form-label fw-semibold">
+                            <i class="bi bi-currency-rupee text-primary me-1"></i> Amount (₹) <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light fw-bold">₹</span>
+                            {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), placeholder="e.g. 450", type="number", min="1", max="1000000", step="1") }}
+                        </div>
+                        <div class="form-text small text-muted">Whole rupees only (1 to 10,00,000).</div>
+                        {% for error in form.amount.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Category Field (FR-EXP-03) -->
+                    <div class="mb-3">
+                        <label for="{{ form.category.id }}" class="form-label fw-semibold">
+                            <i class="bi bi-tag-fill text-primary me-1"></i> Category <span class="text-danger">*</span>
+                        </label>
+                        {{ form.category(class="form-select" + (" is-invalid" if form.category.errors else "")) }}
+                        {% for error in form.category.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Date Field (FR-EXP-05: Max today) -->
+                    <div class="mb-3">
+                        <label for="{{ form.expense_date.id }}" class="form-label fw-semibold">
+                            <i class="bi bi-calendar-event text-primary me-1"></i> Expense Date <span class="text-danger">*</span>
+                        </label>
+                        {{ form.expense_date(class="form-control" + (" is-invalid" if form.expense_date.errors else ""), type="date", max=today_date.strftime('%Y-%m-%d')) }}
+                        <div class="form-text small text-muted">Cannot be later than today.</div>
+                        {% for error in form.expense_date.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Payment Mode Field (FR-EXP-04) -->
+                    <div class="mb-3">
+                        <label for="{{ form.payment_mode.id }}" class="form-label fw-semibold">
+                            <i class="bi bi-credit-card-2-front text-primary me-1"></i> Payment Mode <span class="text-danger">*</span>
+                        </label>
+                        {{ form.payment_mode(class="form-select" + (" is-invalid" if form.payment_mode.errors else "")) }}
+                        {% for error in form.payment_mode.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Description Field (FR-EXP-06) -->
+                    <div class="mb-4">
+                        <label for="{{ form.description.id }}" class="form-label fw-semibold">
+                            <i class="bi bi-card-text text-primary me-1"></i> Description (Optional)
+                        </label>
+                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), placeholder="e.g. Lunch with team, monthly grocery, metro recharge", maxlength="200") }}
+                        <div class="form-text small text-muted">Brief note, maximum 200 characters.</div>
+                        {% for error in form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Submit & Cancel Buttons -->
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                        <a href="{{ url_for('expenses') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                            <i class="bi bi-check2-circle me-1"></i> {{ form.submit.label.text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

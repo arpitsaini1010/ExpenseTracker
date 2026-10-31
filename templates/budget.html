@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Monthly Budget - SmartExpense{% endblock %}
+
+{% block content %}
+<div class="budget-wrapper">
+    <!-- Header with Month Indicator -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                <span>Monthly Budget Management</span>
+                <span class="badge bg-light text-primary border small fs-6 fw-semibold">
+                    {{ selected_month | month_display }}
+                </span>
+            </h2>
+            <p class="text-muted small mb-0">Set your spending limit per month. Months without a specific budget inherit from the previous set budget.</p>
+        </div>
+
+        <div>
+            <a href="{{ url_for('dashboard', month=selected_month) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Budget Form Column -->
+        <div class="col-12 col-lg-5">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-primary-gradient text-white p-3 p-md-4">
+                    <h5 class="fw-bold mb-1">
+                        <i class="bi bi-piggy-bank-fill me-2"></i>Set or Update Budget
+                    </h5>
+                    <p class="text-white-50 small mb-0">Define spending target for a calendar month</p>
+                </div>
+
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('budget', month=selected_month) }}" novalidate>
+                        {{ form.csrf_token }}
+
+                        <!-- Month Selector Field (FR-BUD-01) -->
+                        <div class="mb-3">
+                            <label for="budgetMonthInput" class="form-label fw-semibold">
+                                <i class="bi bi-calendar-month text-primary me-1"></i> Target Month <span class="text-danger">*</span>
+                            </label>
+                            <input type="month" 
+                                   id="budgetMonthInput" 
+                                   name="month" 
+                                   class="form-control{% if form.month.errors %} is-invalid{% endif %}" 
+                                   value="{{ selected_month }}" 
+                                   required 
+                                   onchange="window.location.href='{{ url_for('budget') }}?month=' + this.value">
+                            <div class="form-text small text-muted">Select the month you wish to review or configure.</div>
+                            {% for error in form.month.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Amount Field (FR-BUD-02) -->
+                        <div class="mb-4">
+                            <label for="{{ form.amount.id }}" class="form-label fw-semibold">
+                                <i class="bi bi-currency-rupee text-primary me-1"></i> Monthly Budget Amount (₹) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light fw-bold">₹</span>
+                                {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), placeholder="e.g. 20000", type="number", min="1", max="10000000", step="1") }}
+                            </div>
+                            <div class="form-text small text-muted">Whole rupees (1 to 1,00,00,000).</div>
+                            {% for error in form.amount.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary rounded-pill py-2 shadow-sm fw-semibold">
+                                <i class="bi bi-check-circle-fill me-1"></i> Save Budget
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Effective Budget Info Card (FR-BUD-04, 05) -->
+            <div class="card shadow-sm border-0 rounded-4 bg-light">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-dark d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-info-circle-fill text-primary"></i> Effective Budget Rule
+                    </h6>
+                    <p class="small text-muted mb-3">
+                        The effective budget is used for real-time dashboard calculations and alert boundaries:
+                    </p>
+                    <div class="p-3 bg-white rounded-3 border mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Effective for {{ selected_month | month_display }}:</span>
+                            <span class="fw-bold fs-5 text-primary">
+                                {% if eff_budget is not none %}
+                                    {{ eff_budget | inr }}
+                                {% else %}
+                                    <span class="text-muted">None set</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="small text-muted mt-2 pt-2 border-top">
+                            {% if stored_budget %}
+                                <i class="bi bi-check2 text-success me-1"></i> Specifically saved for this month.
+                            {% elif eff_budget is not none %}
+                                <i class="bi bi-arrow-return-right text-info me-1"></i> Inherited from the latest earlier configured month.
+                            {% else %}
+                                <i class="bi bi-exclamation-circle text-warning me-1"></i> No budget set yet for this or any earlier month.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History of Budgets Table Column (FR-BUD-04) -->
+        <div class="col-12 col-lg-7">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden h-100">
+                <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-clock-history text-secondary"></i> Configured Monthly Budgets
+                    </h5>
+                    <span class="badge bg-light text-secondary border rounded-pill">{{ user_budgets | length }} records</span>
+                </div>
+
+                <div class="card-body p-0">
+                    {% if user_budgets %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-3">Month</th>
+                                        <th scope="col" class="py-3 text-end">Budget Amount</th>
+                                        <th scope="col" class="py-3 text-muted">Last Updated</th>
+                                        <th scope="col" class="text-center px-4 py-3">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for b in user_budgets %}
+                                    <tr {% if b.month == selected_month %}class="table-primary-subtle"{% endif %}>
+                                        <td class="px-4 fw-semibold">
+                                            {{ b.month | month_display }}
+                                            {% if b.month == selected_month %}
+                                                <span class="badge bg-primary text-white ms-1 small">Current View</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end fw-bold text-dark">{{ b.amount | inr }}</td>
+                                        <td class="text-muted small">{{ b.updated_at.strftime('%d %b %Y, %H:%M') }} UTC</td>
+                                        <td class="text-center px-4">
+                                            <a href="{{ url_for('budget', month=b.month) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1">
+                                                Select
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 px-3 text-muted">
+                            <i class="bi bi-piggy-bank display-3 text-secondary-subtle d-block mb-3"></i>
+                            <h6 class="fw-bold text-dark">No budgets configured yet</h6>
+                            <p class="small text-muted mb-0">Set your first monthly budget on the left to start tracking financial health.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
